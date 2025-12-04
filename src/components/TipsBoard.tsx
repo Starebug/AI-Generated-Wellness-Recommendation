@@ -45,7 +45,7 @@ function TipDetailView({ tip, detail, loading, error, onBack, onSave, isSaved, o
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <button
           type="button"
-          className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1 self-start"
+          className="cursor-pointer text-xs sm:text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1 self-start"
           onClick={onBack}
         >
           ← Back
@@ -60,7 +60,7 @@ function TipDetailView({ tip, detail, loading, error, onBack, onSave, isSaved, o
           <button
             type="button"
             onClick={onSave}
-            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto ${
+            className={`cursor-pointer px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto ${
               isSaved
                 ? 'bg-[#1F2937] text-white hover:bg-[#374151]'
                 : 'bg-white text-[#1F2937] border border-[#DFEAF2] hover:bg-gray-50'
@@ -93,7 +93,7 @@ function TipDetailView({ tip, detail, loading, error, onBack, onSave, isSaved, o
               <button
                 type="button"
                 onClick={onRetry}
-                className="self-start px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                className="cursor-pointer self-start px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
               >
                 Try Again
               </button>
@@ -365,13 +365,13 @@ export default function TipsBoard() {
       // If useCache is false (regenerate), clear the cache first
       if (!useCache) {
         try {
-          window.sessionStorage.removeItem(cacheKey);
+          window.localStorage.removeItem(cacheKey);
         } catch {
           // ignore storage errors
         }
       } else {
-        // First try to hydrate from sessionStorage to avoid repeated API calls
-        const cached = window.sessionStorage.getItem(cacheKey);
+        // First try to hydrate from localStorage to avoid repeated API calls
+        const cached = window.localStorage.getItem(cacheKey);
         if (cached) {
           try {
             const parsed = JSON.parse(cached) as Tip[];
@@ -394,7 +394,7 @@ export default function TipsBoard() {
             setTips(generated);
             setError(null);
             try {
-              window.sessionStorage.setItem(cacheKey, JSON.stringify(generated));
+              window.localStorage.setItem(cacheKey, JSON.stringify(generated));
             } catch {
               // ignore quota / storage errors
             }
@@ -439,7 +439,7 @@ export default function TipsBoard() {
 
     // Include age in cache key so different ages get different details
     const cacheKey = `tipDetail:${goalLabel}:${tip.id}:${age}`;
-    const cached = window.sessionStorage.getItem(cacheKey);
+    const cached = window.localStorage.getItem(cacheKey);
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as TipDetail;
@@ -457,7 +457,7 @@ export default function TipsBoard() {
       setDetail(result);
       setDetailError(null);
       try {
-        window.sessionStorage.setItem(cacheKey, JSON.stringify(result));
+        window.localStorage.setItem(cacheKey, JSON.stringify(result));
       } catch {
         // ignore storage errors
       }
@@ -514,6 +514,43 @@ export default function TipsBoard() {
     }
   };
 
+  const handleLogout = () => {
+    try {
+      // Clear all localStorage items
+      window.localStorage.removeItem('wellnessProfile');
+      window.localStorage.removeItem('wellnessSavedTips');
+      
+      // Clear all cached tips and tip details
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
+        if (key && (key.startsWith('tips:') || key.startsWith('tipDetail:'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => {
+        try {
+          window.localStorage.removeItem(key);
+        } catch {
+          // ignore errors
+        }
+      });
+
+      // Clear sessionStorage as well (just in case)
+      try {
+        window.sessionStorage.clear();
+      } catch {
+        // ignore errors
+      }
+
+      // Redirect to home
+      navigate('/');
+    } catch {
+      // If anything fails, still redirect
+      navigate('/');
+    }
+  };
+
   const isDetailView = Boolean(selectedTip);
 
   return (
@@ -530,16 +567,23 @@ export default function TipsBoard() {
                   type="button"
                   onClick={() => loadTips(false)}
                   disabled={loading}
-                  className="px-3 py-2 text-xs font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-1"
+                  className="cursor-pointer px-2 py-2 text-xs font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-1"
                 >
                   {loading ? 'Regenerating...' : 'Regenerate'}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate('/board/saved')}
-                  className="px-3 py-2 text-xs font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors whitespace-nowrap flex-1"
+                  className="cursor-pointer px-2 py-2 text-xs font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors whitespace-nowrap flex-1"
                 >
                   Saved
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="cursor-pointer px-2 py-2 text-xs font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 hover:border-red-400 transition-colors whitespace-nowrap flex-1"
+                >
+                  Logout
                 </button>
               </div>
             )}
@@ -551,7 +595,7 @@ export default function TipsBoard() {
                   type="button"
                   onClick={() => loadTips(false)}
                   disabled={loading}
-                  className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="cursor-pointer px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   {loading ? 'Regenerating...' : 'Regenerate Tips'}
                 </button>
@@ -572,16 +616,25 @@ export default function TipsBoard() {
               </p>
             </div>
 
-            {/* Desktop: Right button */}
-            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-end">
+            {/* Desktop: Right buttons */}
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-end sm:gap-2">
               {!isDetailView && (
-                <button
-                  type="button"
-                  onClick={() => navigate('/board/saved')}
-                  className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors whitespace-nowrap"
-                >
-                  Saved
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/board/saved')}
+                    className="cursor-pointer px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-[#1F2937] bg-white border border-[#DFEAF2] rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors whitespace-nowrap"
+                  >
+                    Saved
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="cursor-pointer px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 hover:border-red-400 transition-colors whitespace-nowrap"
+                  >
+                    Logout
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -599,12 +652,12 @@ export default function TipsBoard() {
                 tips.map((tip) => (
                   <article
                     key={tip.id}
-                    className="min-w-[200px] xs:min-w-[220px] sm:min-w-[240px] md:min-w-[260px] max-w-xs bg-white rounded-2xl border border-[#DFEAF2] shadow-sm hover:shadow-md transition-shadow flex flex-col flex-shrink-0"
+                    className="cursor-pointer min-w-[200px] xs:min-w-[220px] sm:min-w-[240px] md:min-w-[260px] max-w-xs bg-white rounded-2xl border border-[#DFEAF2] shadow-sm hover:shadow-md transition-shadow flex flex-col flex-shrink-0"
                   >
                     <button
                       type="button"
                       onClick={() => handleTipClick(tip)}
-                      className="w-full h-full text-left px-4 sm:px-5 py-4 sm:py-5 flex flex-col gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1F2937] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                      className="cursor-pointer w-full h-full text-left px-4 sm:px-5 py-4 sm:py-5 flex flex-col gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1F2937] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     >
                       <div className="flex items-center justify-between">
                         <div className="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F3F4F6] text-2xl">
@@ -646,7 +699,7 @@ export default function TipsBoard() {
                   <button
                     type="button"
                     onClick={() => loadTips(false)}
-                    className="self-start px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                    className="cursor-pointer self-start px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
                   >
                     Try Again
                   </button>

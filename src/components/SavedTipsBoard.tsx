@@ -40,7 +40,7 @@ export default function SavedTipsBoard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load tips from sessionStorage for each saved tip
+    // Load tips from localStorage for each saved tip
     const loadSavedTips = () => {
       try {
         const stored = window.localStorage.getItem('wellnessProfile');
@@ -57,9 +57,9 @@ export default function SavedTipsBoard() {
         const label = GOAL_LABELS[goalId] ?? goalId;
         const age = profile.age ?? 30;
 
-        // Try to load tips from sessionStorage cache
+        // Try to load tips from localStorage cache
         const cacheKey = `tips:${label}:${age}`;
-        const cached = window.sessionStorage.getItem(cacheKey);
+        const cached = window.localStorage.getItem(cacheKey);
         if (cached) {
           try {
             const parsed = JSON.parse(cached) as Tip[];
@@ -99,7 +99,7 @@ export default function SavedTipsBoard() {
               <button
                 type="button"
                 onClick={() => navigate('/board')}
-                className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1"
+                className="cursor-pointer text-xs sm:text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1"
               >
                 ← Back
               </button>
