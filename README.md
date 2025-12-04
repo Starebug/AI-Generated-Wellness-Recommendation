@@ -50,6 +50,20 @@ The application will be available at `http://localhost:5173` (or the port shown 
 3. **Tip Detail** (`/board/:tipId`): Shows detailed explanation and step-by-step advice for a selected tip
 4. **Saved Tips** (`/board/saved`): Displays all saved tips in a grid layout
 
+### Screenshots
+
+#### Profile Capture Screen
+![Profile Capture](i1.png)
+
+#### Tips Board
+![Tips Board](i2.png)
+
+#### Tip Detail View
+![Tip Detail](i3.png)
+
+#### Saved Tips Board
+![Saved Tips](i4.png)
+
 ## 2. Problem Understanding
 
 ### Problem Statement
@@ -122,6 +136,16 @@ The prompts were refined to:
   - Routes defined: `/` (ProfileCapture), `/board` (TipsBoard), `/board/saved` (SavedTipsBoard), `/board/:tipId` (TipDetail)
   - Wraps application with `SavedTipsProvider` for global state management
 
+### Service Layer
+
+#### `aiService.ts`
+- Centralized service for all Gemini API calls
+- Exports TypeScript interfaces: `Tip` and `TipDetail`
+- Provides `fetchGeminiTips()` and `fetchGeminiDetail()` functions
+- Includes helper functions: `extractJsonBlock()` and `withRetry()`
+- Handles all error scenarios and response parsing
+- Used by `TipsBoard.tsx` and can be reused by other components
+
 ### Component Structure
 
 #### `ProfileCapture.tsx`
@@ -134,10 +158,11 @@ The prompts were refined to:
 #### `TipsBoard.tsx`
 - Main board component displaying AI-generated tips
 - Handles both list view (`/board`) and detail view (`/board/:tipId`)
-- Fetches tips from Gemini API with caching in localStorage
+- Uses `aiService.ts` for API calls (no direct API calls in component)
 - Implements horizontal scrollable card layout
 - Includes "Regenerate Tips" functionality
 - Provides logout functionality to clear all data
+- Optimized with `useCallback` hooks for performance
 
 #### `SavedTipsBoard.tsx`
 - Displays saved tips in a responsive grid layout
@@ -165,14 +190,18 @@ The prompts were refined to:
 
 ### AI Service Integration
 
-**API Calls** (within `TipsBoard.tsx`):
-- `fetchGeminiTips()`: Generates 5 wellness tips based on goal and age
-- `fetchGeminiDetail()`: Generates detailed explanation for a specific tip
+**Service Layer** (`aiService.ts`):
+- Centralized API service for all Gemini API interactions
+- Exports `Tip` and `TipDetail` TypeScript interfaces
+- **`fetchGeminiTips(goalLabel, age)`**: Generates 5 wellness tips based on goal and age
+- **`fetchGeminiDetail(goalLabel, tipTitle, age)`**: Generates detailed explanation for a specific tip
 - Both functions include:
-  - Retry logic for network failures
-  - Comprehensive error handling
-  - JSON parsing and validation
-  - Response caching in localStorage
+  - Retry logic for network failures (`withRetry` helper)
+  - Comprehensive error handling (network, HTTP, API, JSON parsing errors)
+  - JSON extraction from markdown code blocks (`extractJsonBlock` helper)
+  - Response validation and type safety
+- Components import and use these functions instead of making direct API calls
+- Separation of concerns: API logic isolated from UI components
 
 **Caching Strategy**:
 - Tips list cached with key: `tips:{goalLabel}:{age}`
@@ -250,39 +279,52 @@ The prompts were refined to:
 
 ### Additional Features Implemented
 
-1. **Comprehensive Error Handling**
+1. **Service Layer Architecture**
+   - Centralized API service (`aiService.ts`) for all Gemini API calls
+   - Separation of concerns: API logic isolated from UI components
+   - Reusable service functions that can be used across components
+   - Type-safe interfaces exported for consistency
+
+2. **Performance Optimizations with React Hooks**
+   - `useCallback` optimization for all event handlers and async functions
+   - Prevents unnecessary re-renders and function recreations
+   - Proper dependency tracking in `useEffect` hooks
+   - Optimized tip card rendering with memoized callbacks
+
+3. **Comprehensive Error Handling**
    - Network error detection and user-friendly messages
    - API error handling with specific error messages
    - JSON parsing validation
    - Graceful fallbacks for all error scenarios
 
-2. **Retry Logic**
+4. **Retry Logic**
    - Automatic retry mechanism for failed API calls
    - Configurable retry attempts and delays
    - Improves reliability for transient network issues
 
-3. **Responsive Design**
+5. **Responsive Design**
    - Mobile-first approach with breakpoints for all screen sizes
    - Adaptive layouts for different viewports
    - Touch-friendly interactions on mobile devices
    - Optimized horizontal scrolling for tip cards
 
-4. **Performance Optimizations**
+6. **Performance Optimizations**
    - localStorage caching to reduce API calls
    - Efficient state management with React Context
    - Lazy loading considerations for future scalability
 
-5. **Accessibility**
+7. **Accessibility**
    - Semantic HTML structure
    - ARIA labels for screen readers
    - Keyboard navigation support
    - Focus visible states
 
-6. **Code Quality**
+8. **Code Quality**
    - TypeScript for type safety
    - ESLint configuration for code quality
    - Modular component structure
    - Reusable utility functions
+   - Service layer pattern for maintainability
 
 ## Technology Stack
 
