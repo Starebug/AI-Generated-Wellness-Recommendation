@@ -53,16 +53,16 @@ The application will be available at `http://localhost:5173` (or the port shown 
 ### Screenshots
 
 #### Profile Capture Screen
-![Profile Capture](i1.png)
+![Profile Capture](/i1.png)
 
 #### Tips Board
-![Tips Board](i2.png)
+![Tips Board](/i2.png)
 
 #### Tip Detail View
-![Tip Detail](i3.png)
+![Tip Detail](/i3.png)
 
 #### Saved Tips Board
-![Saved Tips](i4.png)
+![Saved Tips](/i4.png)
 
 ## 2. Problem Understanding
 
