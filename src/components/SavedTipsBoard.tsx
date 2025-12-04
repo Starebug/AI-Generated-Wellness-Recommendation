@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSavedTips } from '../contexts/SavedTipsContext';
-
-interface Tip {
-  id: string;
-  icon: string;
-  title: string;
-  category: string;
-  duration: string;
-}
+import { type Tip } from '../services/aiService';
 
 interface StoredProfile {
   age: number;
